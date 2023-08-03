@@ -4,7 +4,7 @@ Shortname: css-cascade
 Level: 6
 Status: ED
 Prepare for TR: no
-Work Status: Revising
+Work Status :
 Group: csswg
 ED: https://drafts.csswg.org/css-cascade-6/
 TR: https://www.w3.org/TR/css-cascade-6/
