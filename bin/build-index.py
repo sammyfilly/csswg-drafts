@@ -73,15 +73,11 @@ def get_bs_spec_metadata(folder_name, path):
         shortname = "css-transitions"
     elif spec.md.shortname == "scroll-animations-1":
         shortname = "scroll-animations"
+    elif snapshot_match := re.match("^css-(20[0-9]{2})$", spec.md.shortname):
+        shortname = "css-snapshot"
+        level = int(snapshot_match[1])
     else:
-        # Fix CSS snapshots (e.g. "css-2022")
-        snapshot_match = re.match(
-            "^css-(20[0-9]{2})$", spec.md.shortname)
-        if snapshot_match:
-            shortname = "css-snapshot"
-            level = int(snapshot_match.group(1))
-        else:
-            shortname = spec.md.shortname
+        shortname = spec.md.shortname
 
     return {
         "timestamp": get_date_authored_timestamp_from_git(path),
@@ -94,18 +90,18 @@ def get_bs_spec_metadata(folder_name, path):
 
 def get_html_spec_metadata(folder_name, path):
     match = re.match("^([a-z0-9-]+)-([0-9]+)$", folder_name)
-    if match and match.group(1) == "css":
+    if match and match[1] == "css":
         shortname = "css-snapshot"
-        title = f"CSS Snapshot {match.group(2)}"
+        title = f"CSS Snapshot {match[2]}"
     else:
-        shortname = match.group(1) if match else folder_name
+        shortname = match[1] if match else folder_name
         title = title_from_html(path)
 
     return {
         "shortname": shortname,
-        "level": int(match.group(2)) if match else 0,
+        "level": int(match[2]) if match else 0,
         "title": title,
-        "workStatus": "completed"  # It's a good heuristic
+        "workStatus": "completed",
     }
 
 
@@ -174,12 +170,12 @@ for shortname, specgroup in specgroups.items():
         # is wrong in a number of cases. Try and come up with a better
         # algorithm, rather than maintaining a list of exceptions.
         for spec in specgroup:
-            if shortname in CURRENT_WORK_EXCEPTIONS:
-                if CURRENT_WORK_EXCEPTIONS[shortname] == spec["level"]:
-                    spec["currentWork"] = True
-                    currentWorkDir = spec["dir"]
-                    break
-            elif spec["workStatus"] != "completed":
+            if (
+                shortname in CURRENT_WORK_EXCEPTIONS
+                and CURRENT_WORK_EXCEPTIONS[shortname] == spec["level"]
+                or shortname not in CURRENT_WORK_EXCEPTIONS
+                and spec["workStatus"] != "completed"
+            ):
                 spec["currentWork"] = True
                 currentWorkDir = spec["dir"]
                 break
